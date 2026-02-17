@@ -1,5 +1,5 @@
 
-# Tucil1_[NIM] - Queens Game Solver
+# Tucil1_13524077 - Queens Game Solver
 
 ## a. Deskripsi Singkat Program
 Program ini adalah penyelesai otomatis (solver) untuk permainan logika **Queens** yang terdapat pada platform LinkedIn. Tujuan dari permainan ini adalah menempatkan tepat satu ratu (queen) di setiap baris, kolom, dan daerah warna pada papan persegi tanpa ada dua ratu yang saling bersebelahan (termasuk secara diagonal).
