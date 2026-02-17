@@ -84,49 +84,127 @@ void logIteration(Board& board, long long iteration) {
     iterationLog << "---END---" << endl;
 }
 
-bool solve(Board& board, int currentRow, long long& iterations){
+bool solveOptimized(Board& board, int currentRow, long long& iterations){
     if(currentRow == board.tile.size()){
         return true;
     }
 
     for(int i = 0; i < board.tile.size(); i++){
-        iterations++;
+        iterations++; 
 
-        if(iterations % 500 == 0){
-            board.tile[currentRow][i].isQueenPlaced = true;
+        board.tile[currentRow][i].isQueenPlaced = true;
+        
+        if(iterations % 10 == 0){
             logIteration(board, iterations);
-            board.tile[currentRow][i].isQueenPlaced = false;
         }
+        board.tile[currentRow][i].isQueenPlaced = false;
 
         if(checkCurrentQueenPos(board, currentRow, i)){
             board.tile[currentRow][i].isQueenPlaced = true;
-            if(solve(board, currentRow + 1, iterations)){
+            
+            if(solveOptimized(board, currentRow + 1, iterations)){
                 return true;
             }
             board.tile[currentRow][i].isQueenPlaced = false;
         }
-
     }
 
     return false;
 }
 
-void printBoard(Board board){
+bool checkConfig(Board board){
+    // check row
+    for(int i = 0; i < board.tile.size(); i++){
+        int queenCount = 0;
+        for(int j = 0; j < board.tile.size(); j++){
+            if(board.tile[i][j].isQueenPlaced){
+                queenCount++;
+            }
+        }
+        if(queenCount > 1) return false;
+    }
+
+    // check column
+    for(int i = 0; i < board.tile.size(); i++){
+        int queenCount = 0;
+        for(int j = 0; j < board.tile.size(); j++){
+            if(board.tile[j][i].isQueenPlaced){
+                queenCount++;
+            }
+        }
+        if(queenCount > 1) return false;
+    }
+
+    // check region
+    for(int i = 0; i < board.tile.size(); i++){
+        for(int j = 0; j < board.tile.size(); j++){
+            char currentRegion = board.tile[i][j].region;
+            int queenCount = 0;
+            for(int k = 0; k < board.tile.size(); k++){
+                for(int l = 0; l < board.tile.size(); l++){
+                    if(board.tile[k][l].region == currentRegion && board.tile[k][l].isQueenPlaced){
+                        queenCount++;
+                    }
+                }
+            }
+            if(queenCount > 1) return false;
+        }
+    }
+
+    // check adjacent
     for(int i = 0; i < board.tile.size(); i++){
         for(int j = 0; j < board.tile.size(); j++){
             if(board.tile[i][j].isQueenPlaced){
-                cout << "# ";
-            } else {
-                cout << board.tile[i][j].region << " ";
+                for(int k = -1; k <= 1; k++){
+                    for(int l = -1; l <= 1; l++){
+                        if(k == 0 && l == 0) continue;
+                        int r = i + k;
+                        int c = j + l;
+                        if(r >= 0 && r < board.tile.size() && c >= 0 && c < board.tile.size()){
+                            if(board.tile[r][c].isQueenPlaced){
+                                return false;
+                            }
+                        }
+                    }
+                }
             }
         }
-        cout << endl;
+    }
+
+    return true;
+}
+
+bool solveNoHeuristics(Board& board, int currentRow, long long& iterations){
+    if(currentRow == board.tile.size()){
+        
+        return checkConfig(board);
+    }
+
+    for(int i = 0; i < board.tile.size(); i++){
+        board.tile[currentRow][i].isQueenPlaced = true;
+        iterations++;
+
+         if(iterations % 10 == 0){
+            logIteration(board, iterations);
+        }
+
+        if(solveNoHeuristics(board, currentRow + 1, iterations))
+            return true;
+
+        board.tile[currentRow][i].isQueenPlaced = false;
+    }
+
+    return false;
+}
+
+void printBoard(BoardString board){
+    for(int i = 0; i < board.size; i++){
+        cout << board.grid[i] << endl;
     }
 }
 
-bool parseBoard(BoardString &board, long long &iterations) {
+bool parseBoard(BoardString &board, long long &iterations, bool useHeuristics) {
     Board solution;
-    int region_count = 0;
 
     for(int i = 0; i < board.size; i++) {
         string curr_grid = board.grid[i];
@@ -147,24 +225,46 @@ bool parseBoard(BoardString &board, long long &iterations) {
         }
         cout << endl;
     } 
+    bool found;
 
-    bool found = solve(solution, 0, iterations);
-    if(found){
-        for(int i = 0; i < solution.tile.size(); i++){
-            string newRow = "";
-            for(int j = 0; j < solution.tile.size(); j++){
-                if(solution.tile[i][j].isQueenPlaced){
-                    newRow += '#';
-                } 
-                else{
-                    newRow += solution.tile[i][j].region;
+    if(useHeuristics){
+        found = solveOptimized(solution, 0, iterations);
+        if(found){
+            for(int i = 0; i < solution.tile.size(); i++){
+                string newRow = "";
+                for(int j = 0; j < solution.tile.size(); j++){
+                    if(solution.tile[i][j].isQueenPlaced){
+                        newRow += '#';
+                    } 
+                    else{
+                        newRow += solution.tile[i][j].region;
+                    }
                 }
+                board.grid[i] = newRow;
             }
-            board.grid[i] = newRow;
+        
+        return found;
         }
     }
-
-    return true;
+    else{
+        found = solveNoHeuristics(solution, 0, iterations);
+        if(found){
+            for(int i = 0; i < solution.tile.size(); i++){
+                string newRow = "";
+                for(int j = 0; j < solution.tile.size(); j++){
+                    if(solution.tile[i][j].isQueenPlaced){
+                        newRow += '#';
+                    } 
+                    else{
+                        newRow += solution.tile[i][j].region;
+                    }
+                }
+                board.grid[i] = newRow;
+            }
+        }
+        return found;
+    }
+    return false;
 }
 
 
@@ -194,9 +294,16 @@ int main(int argc, char* argv[]) {
 
     BoardString board;
     string line;
+    bool useHeuristics;
     while (infile >> line) {
         board.grid.push_back(line);
         cout << "Membaca baris: " << line << endl;
+    }
+    if(board.grid[board.grid.size() - 1] == "1"){
+        useHeuristics = true;
+        board.grid.pop_back();
+    } else {
+        useHeuristics = false;
     }
     board.size = board.grid.size();
     infile.close();
@@ -208,7 +315,7 @@ int main(int argc, char* argv[]) {
     auto start = chrono::high_resolution_clock::now();
     long long iterations = 0;
 
-    bool found = parseBoard(board, iterations);
+    bool found = parseBoard(board, iterations, useHeuristics);
 
     auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -242,6 +349,9 @@ int main(int argc, char* argv[]) {
     
     cout << "\nHasil disimpan di: " << outputFile << endl;
     cout << "Log iterasi disimpan di: " << iterationFile << endl;
+
+    cout << "\nSolusi yang ditemukan:" << endl;
+    printBoard(board);
     
     return 0;
 }

@@ -4,7 +4,7 @@ import subprocess
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QSpinBox, 
                              QMessageBox, QTableWidget, QTableWidgetItem,
-                             QHeaderView, QDialog, QScrollArea)
+                             QHeaderView, QDialog, QScrollArea, QCheckBox) 
 from PyQt6.QtGui import QColor, QFont, QBrush
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFileDialog
@@ -197,11 +197,15 @@ class QueensGUI(QMainWindow):
         btn_load = QPushButton("Load dari TXT")
         btn_load.setStyleSheet("padding: 5px 10px;")
         btn_load.clicked.connect(self.load_from_txt)
+        self.check_opt = QCheckBox("Enable Optimization")
+        self.check_opt.setFont(QFont("Arial", 11))
+        self.check_opt.setToolTip("Jika dicentang, akan mengirimkan sinyal '1' ke file input")
 
         header_layout.addWidget(btn_load)
         header_layout.addWidget(lbl_size)
         header_layout.addWidget(self.spin_size)
         header_layout.addWidget(btn_resize)
+        header_layout.addWidget(self.check_opt) 
         header_layout.addStretch()
         
         main_layout.addLayout(header_layout)
@@ -450,6 +454,10 @@ class QueensGUI(QMainWindow):
                     for c in range(self.grid_size):
                         line += chr(65 + self.grid_data[r][c])
                     f.write(line + "\n")
+                    
+                if self.check_opt.isChecked():
+                    f.write("1\n") 
+                    
         except Exception as e:
             QMessageBox.critical(self, "File Error", f"Gagal menulis input: {e}")
             return
