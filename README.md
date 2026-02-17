@@ -71,7 +71,7 @@ Jika Anda hanya ingin menjalankan solver C++ tanpa GUI:
 ```
 
 
-3. Hasil solusi, waktu pencarian, dan jumlah iterasi akan dicetak pada terminal dan disimpan di `test/output.txt`, sementara langkah iterasi akan disimpan pada `test/iteration.txt`
+3. Hasil solusi, waktu pencarian, dan jumlah iterasi akan dicetak pada terminal dan disimpan di `test/output.txt`, sementara langkah iterasi akan disimpan pada `test/iterations.txt`
 
 ## e. Author
 
